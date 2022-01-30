@@ -35,7 +35,7 @@ public class BallScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (gm.isGameOver)
+        if (gm.gameState == GameState.ended)
         {
             ResetBall();          
             return;
@@ -43,12 +43,12 @@ public class BallScript : MonoBehaviour
 
         if (inPlay)
         {
-            if (!gm.pausedGame && !newPause)
+            if (gm.gameState != GameState.paused && !newPause)
             {
                 savedVelocity = rb.velocity;
             }
 
-            if (gm.pausedGame) // pause the ball velocity
+            if (gm.gameState == GameState.paused) // pause the ball velocity
             {
                 if (!newPause)
                 {
@@ -58,7 +58,7 @@ public class BallScript : MonoBehaviour
                 return;
             }
 
-            if (!gm.pausedGame && newPause) // resumethe ball velocity
+            if (gm.gameState != GameState.playing && newPause) // resumethe ball velocity
             {
                 rb.velocity = savedVelocity;
                 newPause = false;
@@ -73,7 +73,7 @@ public class BallScript : MonoBehaviour
             transform.position = paddle.position;
             if (Input.GetButtonDown("Jump"))
             {
-                gm.nextLevel = false;
+                gm.gameState = GameState.playing;
                 StartBall();
             }
         }
@@ -125,7 +125,7 @@ public class BallScript : MonoBehaviour
             else // destroy brick
             {                
                 // when brick is destroyed check if power is released
-                if (!gm.isGameOver)
+                if (gm.gameState == GameState.ended)
                 {
                     GeneratePowerUp(brickScript.powerUp, collision);
                 }
@@ -135,7 +135,7 @@ public class BallScript : MonoBehaviour
                 Transform newExplosion = Instantiate(explosion, collision.transform.position, collision.transform.rotation);
                 Destroy(newExplosion.gameObject, 3.0f);
                 Destroy(collision.gameObject);
-                if (gm.nextLevel)
+                if (gm.gameState == GameState.nextLevel)
                 {
                     gm.NextLevel();
                 }

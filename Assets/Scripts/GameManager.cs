@@ -15,9 +15,7 @@ public class GameManager : MonoBehaviour
     public GameObject menuPanel;
     public GameObject LoadLevelPanel;
     public GameObject PausedMenuPanel;
-    public bool isGameOver;
-    public bool pausedGame;
-    public bool nextLevel;
+    public GameState gameState;
 
     public Transform[] prefabLevels;
 
@@ -30,11 +28,12 @@ public class GameManager : MonoBehaviour
 
         Debug.Log(string.Format("Check random pref that does not exit{0}", PlayerPrefs.GetFloat("Random")));
 
+        gameState = GameState.firstTime;
+
         gameLevel = START_LEVEL_FROM;
         lives = MAX_INTIAL_LIVES;
         score = 0;
 
-        nextLevel = false;
 
         livesText.text = string.Format("Lives: {0}", lives);
         scoreText.text = string.Format("Score: {0}", score);
@@ -46,25 +45,6 @@ public class GameManager : MonoBehaviour
 
     }
 
-    /*
-        /// <summary>
-        /// Loads the next level, assumns that that next levels exist
-        /// </summary>
-        /// <param name="gameLevel"></param>
-        public void LoadLevel(int level)
-        {
-
-    #if UNITY_EDITOR
-            Debug.Log(string.Format("LoadLevel with level:{0}", level));
-            Debug.Log(string.Format("prefab level {0}: {1}", level-1, prefabLevels[level-2].name));
-    #endif
-
-            ball.GetComponent<BallScript>().ResetBall();
-            Instantiate(prefabLevels[level - 1], new Vector2(-4f, 2f), Quaternion.identity);
-            levelText.text = string.Format("Level: {0}", gameLevel);
-            numberOfBricks = CountBricks();
-        }
-    */
 
     /// <summary>
     /// Counts the number of Bricks using the "brick" tag
@@ -72,7 +52,6 @@ public class GameManager : MonoBehaviour
     /// <returns>number of bricks</returns>
     private int CountBricks()
     {
-
         Debug.Log(string.Format("Number of Bricks: {0}", GameObject.FindGameObjectsWithTag("brick").Length));
         return GameObject.FindGameObjectsWithTag("brick").Length;
     }
@@ -82,19 +61,19 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (pausedGame)
+            switch (gameState)
             {
-                PausedMenuPanel.SetActive(false);
-                pausedGame = false;
+                case GameState.paused:
+                    PausedMenuPanel.SetActive(false);
+                    gameState = GameState.playing;
+                    break;
+                default:
+                    gameState = GameState.paused;
+                    PausedMenuPanel.SetActive(true);
+                    break;
             }
-            else
-            {
-                pausedGame = true;
-                PausedMenuPanel.SetActive(true);
-            }
-            
-        }
 
+        }
     }
 
     public void RemoveLife()
@@ -137,7 +116,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void GameOver()
     {
-        isGameOver = true;
+        gameState = GameState.ended;
         menuPanel.SetActive(true);
         DestroyAllPowerUps();
     }
@@ -177,7 +156,7 @@ public class GameManager : MonoBehaviour
         else
         {
             LoadLevelPanel.SetActive(true);
-            pausedGame = true;
+            gameState = GameState.paused;
             LoadLevel();
             //Invoke("LoadLevel", 10f);
         }
@@ -197,7 +176,7 @@ public class GameManager : MonoBehaviour
         CountBricks();
         if (numberOfBricks <= 0)
         {
-            nextLevel = true;
+            gameState = GameState.nextLevel;
         }
     }
 
@@ -207,7 +186,7 @@ public class GameManager : MonoBehaviour
     {
         DestroyAllObjectsByTag("level-prefab");
         DestroyAllObjectsByTag("brick");
-        pausedGame = false;
+        gameState = GameState.paused;
         LoadLevelPanel.SetActive(false);
         Invoke("LoadLevel", 0.01f);
         //LoadLevel();
@@ -215,8 +194,7 @@ public class GameManager : MonoBehaviour
 
     public void OnClickReplayLevel()
     {
-        pausedGame = false;
-        isGameOver = false;
+        gameState = GameState.playing;
         LoadLevelPanel.SetActive(false);
         gameLevel--;
 
@@ -226,7 +204,7 @@ public class GameManager : MonoBehaviour
 
     public void OnContGameClick()
     {
-        pausedGame = false;
+        gameState = GameState.playing;
         PausedMenuPanel.SetActive(false);
     }
 
@@ -250,4 +228,9 @@ public class GameManager : MonoBehaviour
     }
 
 
+}
+
+public enum GameState
+{
+    firstTime, playing, paused, ended, nextLevel
 }

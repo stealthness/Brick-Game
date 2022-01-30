@@ -37,7 +37,7 @@ public class PaddleScript : MonoBehaviour
 
     void MovePaddle(float horizontal)
     {
-        if(gm.isGameOver){
+        if(gm.gameState == GameState.ended){
             return;
         }
         if (Mathf.Abs(horizontal) > TOL)
