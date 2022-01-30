@@ -29,10 +29,12 @@ public class PaddleScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        MovePaddle(Input.GetAxis("Horizontal"));
-        paddleSpeed = (xPosition - transform.position.x)/ Time.deltaTime;
-        xPosition = transform.position.x;
-
+        if (gm.gameState == GameState.playing ||  gm.gameState == GameState.firstTime)
+        {
+            MovePaddle(Input.GetAxis("Horizontal"));
+            paddleSpeed = (xPosition - transform.position.x)/ Time.deltaTime;
+            xPosition = transform.position.x;
+        }
     }
 
     void MovePaddle(float horizontal)
@@ -58,15 +60,19 @@ public class PaddleScript : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        Debug.Log(string.Format("Paddle::OnTriggeredEnter2d with {0}", collision.name));
 
         if (collision.CompareTag("extraLife"))
         {
-            //Debug.Log("power up hit");
+            Debug.Log("Paddle::OnTriggeredEnter2d -> power up hit");
             gm.addOneLife();
             Transform newExplosion = Instantiate(explosion, collision.transform.position, collision.transform.rotation);
             Destroy(newExplosion.gameObject, 1.2f);
             Destroy(collision.gameObject);
+        }
+        if (collision.CompareTag("ball"))
+        {
+            Debug.Log("Paddle::OnTriggeredEnter2d -> Paddle Hit");
+            GetComponent<BallScript>().PaddleHit(paddleSpeed);
         }
     }
 

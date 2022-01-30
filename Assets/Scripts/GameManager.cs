@@ -45,22 +45,12 @@ public class GameManager : MonoBehaviour
 
     }
 
-
-    /// <summary>
-    /// Counts the number of Bricks using the "brick" tag
-    /// </summary>
-    /// <returns>number of bricks</returns>
-    private int CountBricks()
-    {
-        Debug.Log(string.Format("Number of Bricks: {0}", GameObject.FindGameObjectsWithTag("brick").Length));
-        return GameObject.FindGameObjectsWithTag("brick").Length;
-    }
-
     // Update is called once per frame
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
+            Debug.Log("Escaped Pressed");
             switch (gameState)
             {
                 case GameState.paused:
@@ -72,24 +62,35 @@ public class GameManager : MonoBehaviour
                     PausedMenuPanel.SetActive(true);
                     break;
             }
-
         }
     }
 
-    public void RemoveLife()
+
+    /// <summary>
+    /// Counts the number of Bricks using the "brick" tag
+    /// </summary>
+    /// <returns>number of bricks</returns>
+    private int CountBricks()
     {
-        if (lives > 1)
-        {
-            SetLives(lives - 1);
-        }
-        else if (lives == 1)
-        {
-            SetLives(0);
-            GameOver();
-        }
-        else // lives < 1
-        {
+        var count = GameObject.FindGameObjectsWithTag("brick").Length;
+        Debug.Log(string.Format("Number of Bricks: {0}", count));
+        return count;
+    }
+
+    public void RemoveLife() { 
+
+        if (lives  < 1){
             Debug.LogError("lives should not be less than zero");
+        }
+        switch (lives)
+        {
+            case 1:
+                SetLives(0);
+                GameOver();
+                break;
+            default:
+                SetLives(lives - 1);
+                break;
         }
     }
 

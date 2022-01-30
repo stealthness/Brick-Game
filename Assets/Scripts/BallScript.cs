@@ -5,95 +5,71 @@ using UnityEngine;
 public class BallScript : MonoBehaviour
 {
 
+    public GameManager gm;
+    public Rigidbody2D rb;
+    private AudioSource ballBounceClip;
     [SerializeField] float FORCE_MULTIPLER = 500;
     [SerializeField] Transform paddle;
     [SerializeField] Transform explosion;
     public Transform extraLifePowerUP;
-    public GameManager gm;
-    public Rigidbody2D rb;
-    private bool inPlay;
     public Vector2 BALL_START_POSITION = new Vector2(0f, -2f);
 
-    private AudioSource clip;
+    
     public float ps;
     public float boosterSpeed = 1f;
 
     private Vector2 savedVelocity; 
     private Vector2 savedForce;
-    private bool newPause;
+
+    private bool reset = true;
 
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        clip = GetComponent<AudioSource>();
+        ballBounceClip = GetComponent<AudioSource>();
+        
         ResetBall();
-        newPause = false;
 
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (gm.gameState == GameState.ended)
+        switch (gm.gameState)
         {
-            ResetBall();          
-            return;
-        }  
-
-        if (inPlay)
-        {
-            if (gm.gameState != GameState.paused && !newPause)
-            {
-                savedVelocity = rb.velocity;
-            }
-
-            if (gm.gameState == GameState.paused) // pause the ball velocity
-            {
-                if (!newPause)
-                {
-                    rb.velocity = Vector2.zero;
-                    newPause = true;
-                }
+            case GameState.paused:
+                break;
+            case GameState.ended:
+                Time.timeScale = 0f;
+                ResetBall();
                 return;
-            }
-
-            if (gm.gameState != GameState.playing && newPause) // resumethe ball velocity
-            {
-                rb.velocity = savedVelocity;
-                newPause = false;
-            }
-        }
-        
-
-
-
-        if (!inPlay)
-        {
-            transform.position = paddle.position;
-            if (Input.GetButtonDown("Jump"))
-            {
-                gm.gameState = GameState.playing;
-                StartBall();
-            }
+            case GameState.firstTime:
+                Time.timeScale = 1f;
+                if (Input.GetButtonDown("Fire3") || Input.GetButtonDown("Jump"))
+                {
+                    Debug.Log("Left Shift pressed");
+                    StartBall();
+                }
+                break;
+            case GameState.playing:
+                Time.timeScale = 1f;
+                savedVelocity = rb.velocity;
+                break;
         }
 
-        if (inPlay && Input.GetButtonDown("Fire3"))
-        {
-            Debug.Log("Left Shift pressed");
-        }
     }
 
     private void StartBall()
     {
         rb.AddForce(Vector2.up * FORCE_MULTIPLER);
-        inPlay = true;
+        gm.gameState = GameState.playing;
     }
 
     public void ResetBall()
     {
         rb.velocity = Vector2.zero;
-        inPlay = false;
+        transform.position = paddle.position + Vector3.up * 0.2f;
     }
 
 
@@ -115,7 +91,7 @@ public class BallScript : MonoBehaviour
 
             BrickScript brickScript = collision.gameObject.GetComponent<BrickScript>();
 
-            clip.Play();
+            ballBounceClip.Play();
 
             if (brickScript.hitsToBreak > 1)
             {
@@ -149,6 +125,7 @@ public class BallScript : MonoBehaviour
         }
         if (collision.gameObject.CompareTag("paddle"))
         {
+            Debug.Log(string.Format("BallScript::OnCollisionEnterd -> paddle hit"));
             ps = collision.gameObject.GetComponent<PaddleScript>().paddleSpeed;
             Debug.Log(string.Format("ps: {0}", ps));
 
@@ -165,6 +142,19 @@ public class BallScript : MonoBehaviour
             
         }
 
+    }
+
+    public void PaddleHit(float paddleSpeed)
+    {
+        if (System.Math.Abs(ps) > 0.1f)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, - rb.velocity.y);
+
+        }
+        else
+        {
+            rb.velocity = new Vector2(rb.velocity.x, -rb.velocity.y);
+        }
     }
 
 
