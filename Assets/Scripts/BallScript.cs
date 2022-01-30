@@ -120,7 +120,7 @@ public class BallScript : MonoBehaviour
         if (collision.gameObject.CompareTag("edge"))
         {
             //Debug.Log("(2)side reached");
-            collision.gameObject.GetComponent<AudioSource>().Play();
+            ballBounceClip.Play();
 
         }
         if (collision.gameObject.CompareTag("paddle"))
@@ -137,10 +137,16 @@ public class BallScript : MonoBehaviour
             else
             {
                 //rb.AddForce(new Vector2(0f, boosterSpeed));
-            }
-
-            
+            }        
         }
+        if (collision.gameObject.CompareTag("bottom"))
+        {
+            Debug.Log(string.Format("BallScript::OnCollisionEnterd -> bottom"));
+            gm.gameState = GameState.firstTime;
+            gm.RemoveLife();
+            ResetBall();
+        }
+
 
     }
 
@@ -155,6 +161,11 @@ public class BallScript : MonoBehaviour
         {
             rb.velocity = new Vector2(rb.velocity.x, -rb.velocity.y);
         }
+    }
+
+    public void MirrorPaddlePosition(Vector3 paddlePos)
+    {
+        transform.position = paddlePos + Vector3.up * 0.2f;
     }
 
 

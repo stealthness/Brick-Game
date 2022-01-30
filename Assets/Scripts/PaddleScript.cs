@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PaddleScript : MonoBehaviour
 {
-
+    public GameObject ball;
     private CharacterController characterController;
 
     private readonly float TOL = 0.0000001f;
@@ -34,6 +34,10 @@ public class PaddleScript : MonoBehaviour
             MovePaddle(Input.GetAxis("Horizontal"));
             paddleSpeed = (xPosition - transform.position.x)/ Time.deltaTime;
             xPosition = transform.position.x;
+        }
+        if (gm.gameState == GameState.firstTime)
+        {
+            
         }
     }
 
